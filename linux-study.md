@@ -410,3 +410,208 @@ ping + IP地址
 - `仅主机模式`
 
   ​		虚拟机只与主机共享一个专用网络，**与外部网络无法通信**
+
+
+
+
+
+#### 配置IP地址
+
+```
+[root@hadoop100 /]# vim /etc/sysconfig/network-scripts/ifcfg-ens33
+
+```
+
+打开之后：
+
+```
+SER_ONLY="no"
+BOOTPROTO="dhcp"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+IPV6_ADDR_GEN_MODE="stable-privacy"
+NAME="ens33"
+UUID="09b545b7-2b9f-473f-a204-11817fd09ad9"
+DEVICE="ens33"
+ONBOOT="yes"
+```
+
+变更方式
+
+![image-20230330172437077](C:\Users\34912\Desktop\linux-study\imgs\image-20230330172437077.png)
+
+```
+YPE="Ethernet"
+PROXY_METHOD="none"
+BROWSER_ONLY="no"
+BOOTPROTO="static"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+IPV6_ADDR_GEN_MODE="stable-privacy"
+NAME="ens33"
+UUID="09b545b7-2b9f-473f-a204-11817fd09ad9"
+DEVICE="ens33"
+ONBOOT="yes"
+#IP地址
+IPADDR=192.168.206.100
+#网关
+GATEWAY=192.168.206.2
+#域名解析器
+DNS1=192.168.206.2
+```
+
+​	重启动网络配置
+
+```
+[root@hadoop100 /]# service network restart 
+```
+
+
+
+**怎么测试是否成功，可以去win下去ping一下**
+
+
+
+#### 查看或者修改主机名称
+
+##### 查看主机名称
+
+```
+oot@hadoop100 /]# hostname
+```
+
+更详细的查看
+
+```
+[root@hadoop111 ~]# hostnamectl
+```
+
+
+
+##### 修改主机名称
+
+```
+oot@hadoop100 /]# vim /etc/hostname
+```
+
+第二种修改主机名称的方式
+
+```
+doop100 /]# hostnamectl set-hostname hadoop111
+```
+
+
+
+#### 修改IP匿名信息
+
+ 		 `这个修改更像是电话薄 IP相当于电话  ，后面相当于名称`
+
+Linux中修改IP信息
+
+```
+[root@hadoop111 ~]# vim /etc/hosts
+```
+
+打开后
+
+​		192.168.206.100  hadoop100
+
+​			原名   					别名
+
+```
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+
+192.168.206.100  hadoop100
+192.168.206.100  hadoop101
+192.168.206.100  hadoop102
+192.168.206.100  hadoop103
+192.168.206.100  hadoop104                                                                                                                                                    
+```
+
+
+
+
+
+win10中修改IP信息
+
+​			根据下面目录打开hosts
+
+```
+C:\Windows\System32\drivers\etc
+```
+
+
+
+加入
+
+```
+192.168.206.100  hadoop100
+192.168.206.100  hadoop101
+192.168.206.100  hadoop102
+192.168.206.100  hadoop103
+192.168.206.100  hadoop104       
+```
+
+
+
+#### 远程登录
+
+打开CMD
+
+```
+C:\Users\34912>ssh root@hadoop100
+
+The authenticity of host 'hadoop100 (192.168.206.100)' can't be established.
+ECDSA key fingerprint is SHA256:wWz/i1bI9uK5Q+fnuYWw7ga5P/pNalRLjyF8VePWHQc.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+
+Warning: Permanently added 'hadoop100,192.168.206.100' (ECDSA) to the list of known hosts.
+root@hadoop100's password:
+Last login: Thu Mar 30 18:52:42 2023
+[root@hadoop100 ~]# ls
+anaconda-ks.cfg  initial-setup-ks.cfg  公共  模板  视频  图片  文档  下载  音乐  桌面
+[root@hadoop100 ~]#
+```
+
+
+
+退出远程服务器
+
+```
+[root@hadoop100 ~]# exit
+登出
+```
+
+
+
+#### Xshell 7 
+
+操作基本一样
+
+![image-20230331220735429](C:\Users\34912\Desktop\linux-study\imgs\image-20230331220735429.png)
+
+
+
+设置简便操作
+
+
+
+![image-20230331220828602](C:\Users\34912\Desktop\linux-study\imgs\image-20230331220828602.png)
+
+
+
+#### Xftp 7
+
+文件 -》当前会话-》选项 -》 编码 UTF-8
+
+![image-20230331221352893](C:\Users\34912\Desktop\linux-study\imgs\image-20230331221352893.png)
