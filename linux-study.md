@@ -1,6 +1,18 @@
+
+
+
+
 ## liunx
 
-###  1.0liunx 文件
+
+
+
+
+###  1.liunx 文件
+
+**本笔记使用的是 CentOS 7** 
+
+
 
 ​	` liunx 系统里面一切皆文件`
 
@@ -121,6 +133,16 @@
 **/var**： 这是一个非常重要的目录，系统上跑了很多程序，那么每个程序都会有相应的日志产生，而这些日志就被记录到这个目录下，具体在 /var/log 目录下，另外 mail 的预设放置也是在这里。
 
 
+
+
+
+Linux常用指令
+
+​			筛查
+
+```
+[root@hadoop111 sbin]#  ls | grep service
+```
 
 
 
@@ -391,6 +413,10 @@ Linux
 
 ping + IP地址
 
+- 如果以上操作都无法ping通，需要关闭	NetworkManager服务
+  - systemctl  stop  NetworkManager  关闭
+  - systemctl  disable   NetworkManager   禁用
+
 
 
 ​      **VMware的三种网络链接方式**
@@ -615,3 +641,349 @@ anaconda-ks.cfg  initial-setup-ks.cfg  公共  模板  视频  图片  文档  �
 文件 -》当前会话-》选项 -》 编码 UTF-8
 
 ![image-20230331221352893](C:\Users\34912\Desktop\linux-study\imgs\image-20230331221352893.png)
+
+
+
+### 4.系统管理
+
+#### 4.1Linux的进程和服务
+
+
+
+- 计算机中一个正在执行的程序或者命令，被叫做进程（process）。
+- 启动之后一直存在，常驻在内存的进程，一般被叫做服务（service）。
+
+
+
+#### 4.2 service服务管理
+
+**小 tips**  **daemon（守护进程） 守护进程和服务是同一个意思  在Linux中服务后面都会加一个d**
+
+- **CentOS 6** 的服务操作
+
+  - 基础语法
+
+    - service  服务名称 start / stop / restart / status
+
+      
+
+   	查看系统服务
+
+```
+[root@hadoop111 /]# ls /etc/init.d
+functions  netconsole  network  README
+```
+
+
+
+#### 4.3systemctl （CentOS 7）
+
+-  基础语法
+  - systemctl   start / stop / restart / status   服务名称
+- 经验技巧
+  - 查看服务的方法 ：  /usr/lib/systemd/system
+
+```linux
+[root@hadoop100 /]# cd /usr/lib/systemd/system
+[root@hadoop100 system]# pwd
+/usr/lib/systemd/system
+[root@hadoop100 system]# ls -al
+总用量 1544
+drwxr-xr-x. 27 root root 20480 3月  19 20:01 .
+drwxr-xr-x. 13 root root  4096 3月  19 20:00 ..
+-rw-r--r--.  1 root root   275 10月  2 2020 abrt-ccpp.service
+-rw-r--r--.  1 root root   380 10月  2 2020 abrtd.service
+-rw-r--r--.  1 root root   361 10月  2 2020 abrt-oops.service
+-rw-r--r--.  1 root root   266 10月  2 2020 abrt-pstoreoops.service
+-rw-r--r--.  1 root root   262 10月  2 2020 abrt-vmcore.service
+-rw-r--r--.  1 root root   311 10月  2 2020 abrt-xorg.service
+-rw-r--r--.  1 root root   729 4月   1 2020 accounts-daemon.service
+-rw-r--r--.  1 root root   569 8月   6 2019 alsa-restore.service
+-rw-r--r--.  1 root root   465 8月   6 2019 alsa-state.service
+-rw-r--r--.  1 root root   682 10月  2 2020 anaconda-direct.service
+-rw-r--r--.  1 root root   185 10月  2 2020 anaconda-nm-config.service
+```
+
+
+
+##### 服务自启动
+
+```
+[root@hadoop100 system]# setup
+```
+
+
+
+点击运行工具
+
+
+
+![image-20230401110652039](C:\Users\34912\Desktop\linux-study\imgs\image-20230401110652039.png)
+
+
+
+选中之后空格可以取消或者选中
+
+![image-20230401110618130](C:\Users\34912\Desktop\linux-study\imgs\image-20230401110618130.png)
+
+
+
+#### 4.4 系统运行级别
+
+
+
+Linux系统有7个运行级别(runlevel)：
+
+- 运行级别0：系统停机状态，系统默认运行级别不能设为0，否则不能正常启动
+- 运行级别1：单用户工作状态，root权限，用于系统维护，禁止远程登录
+- 运行级别2：多用户状态(没有NFS)
+- 运行级别3：完全的多用户状态(有NFS)，登录后进入控制台命令行模式
+- 运行级别4：系统未使用，保留
+- 运行级别5：X11控制台，登录后进入图形GUI模式
+- 运行级别6：系统正常关闭并重启，默认运行级别不能设为6，否则不能正常启动
+
+
+
+##### CentOS 7 简化 运行级别
+
+- multi-user.target: analogous to runlevel 3 (多用户有网，无图形界面)
+
+- graphical.target: analogous to runlevel 5 (多用户有网，有图形界面）
+
+  - 查看当前级别	
+
+    ```
+    [root@hadoop100 /]# systemctl get-default 
+    graphical.target
+    ```
+    
+  - 设置当前级别
+  
+  ```
+  [root@hadoop100 /]# systemctl get-default TARGET.target (这里的TARGET 换成multi-user或者graphical)
+  ```
+  
+  
+
+查看运行级别文档书
+
+
+```
+[root@hadoop100 /]# vim /etc/inittab 
+```
+
+
+
+- 切换运行级别
+
+  - 进入运行级别3  （大黑屏）
+
+    - 和CTRL+ALT+F2 到 F6  一样的操作
+
+    ```
+    [root@hadoop100 /]# init 3
+    ```
+
+  - 进入运行级别5 （ui图像画界面）
+
+    - 和CTRL+ALT+F1  一样的操作
+
+    ```
+    [root@hadoop100 /]# init 5
+    ```
+
+  
+
+  ##### 4.5查看和管理服务级别
+
+  可以通过 目录4.3下的服务自启动来开关
+
+  ```
+  [root@hadoop100 ~]# chkconfig --list
+  
+  注：该输出结果只显示 SysV 服务，并不包含
+  原生 systemd 服务。SysV 配置数据
+  可能被原生 systemd 配置覆盖。 
+  
+        要列出 systemd 服务，请执行 'systemctl list-unit-files'。
+        查看在具体 target 启用的服务请执行
+        'systemctl list-dependencies [target]'。
+  
+  netconsole     	0:关	1:关	2:关	3:关	4:关	5:关	6:关
+  network        	0:关	1:关	2:开	3:开	4:开	5:开	6:关
+  ```
+
+
+
+###### 关闭或者打开所有权限
+
+
+
+- chkconfig network off   关闭
+- chkconfig network on  开启
+
+```
+[root@hadoop100 ~]# chkconfig network off
+[root@hadoop100 ~]# chkconfig --list
+
+注：该输出结果只显示 SysV 服务，并不包含
+原生 systemd 服务。SysV 配置数据
+可能被原生 systemd 配置覆盖。 
+
+      要列出 systemd 服务，请执行 'systemctl list-unit-files'。
+      查看在具体 target 启用的服务请执行
+      'systemctl list-dependencies [target]'。
+
+netconsole     	0:关	1:关	2:关	3:关	4:关	5:关	6:关
+network        	0:关	1:关	2:关	3:关	4:关	5:关	6:关
+[root@hadoop100 ~]# chkconfig network on
+[root@hadoop100 ~]# chkconfig --list
+
+注：该输出结果只显示 SysV 服务，并不包含
+原生 systemd 服务。SysV 配置数据
+可能被原生 systemd 配置覆盖。 
+
+      要列出 systemd 服务，请执行 'systemctl list-unit-files'。
+      查看在具体 target 启用的服务请执行
+      'systemctl list-dependencies [target]'。
+
+netconsole     	0:关	1:关	2:关	3:关	4:关	5:关	6:关
+network        	0:关	1:关	2:开	3:开	4:开	5:开	6:关
+
+```
+
+###### 指定打开或关闭
+
+- chkconfig --level 3 network off
+- chkconfig --level 3 network on
+
+```
+[root@hadoop100 ~]# chkconfig --level 3 network off
+```
+
+
+
+###### 操作服务自启动
+
+
+
+-  systemctl status NetworkManager
+  - preset: enabled  预设开机自启动
+
+```
+[root@hadoop100 ~]# systemctl status NetworkManager
+● NetworkManager.service - Network Manager
+   Loaded: loaded (/usr/lib/systemd/system/NetworkManager.service; enabled; vendor preset: enabled)
+   Active: active (running) since 六 2023-04-01 10:18:04 CST; 6h ago
+     Docs: man:NetworkManager(8)
+ Main PID: 768 (NetworkManager)
+   CGroup: /system.slice/NetworkManager.service
+           └─768 /usr/sbin/NetworkManager --no-daemon
+
+```
+
+- systemctl dsiable Network Manager   关闭开机自启动
+
+```
+[root@hadoop100 ~]# systemctl dsiable Network Manager
+```
+
+
+
+
+
+- systemctl list-unit-files     查看所有服务启动状态
+  - status
+    - static 静态 根据其它服务的启动来
+    - disabled  开机不启动
+    - enabled   开机启动
+
+```
+root@hadoop100 ~]# systemctl list-unit-files 
+
+proc-sys-fs-binfmt_misc.mount                 static  
+run-vmblock\x2dfuse.mount                     disabled
+abrt-oops.service                             enabled 
+```
+
+
+
+
+
+###### 操作防火墙
+
+- 查看防火墙状态
+- Cent OS 6 的防火墙  iptables
+- Cent OS 7 的防火墙  firewalld
+
+```
+[root@hadoop100 ~]# systemctl status firewalld
+● firewalld.service - firewalld - dynamic firewall daemon
+   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled; vendor preset: enabled)
+   Active: active (running) since 六 2023-04-01 10:18:04 CST; 7h ago
+     Docs: man:firewalld(1)
+ Main PID: 730 (firewalld)
+   CGroup: /system.slice/firewalld.service
+           └─730 /usr/bin/python2 -Es /usr/sbin/firewalld --nofork --nopid
+
+```
+
+
+
+- 打开 关闭防火墙 
+  -   systemctl stop firewalld
+  - systemctl start firewalld
+
+​				加不加.service 都是一样的
+
+```
+[root@hadoop100 ~]# systemctl stop firewalld.service 
+[root@hadoop100 ~]# systemctl start firewalld.service 
+```
+
+
+
+- 打开 关闭 开机自启防火墙
+  - systemctl disable firewalld  关闭开机自启
+  - systemctl enable firewalld.service    关闭开机自启
+
+```
+[root@hadoop100 ~]# systemctl disable firewalld
+[root@hadoop100 ~]# systemctl enable firewalld.service 
+```
+
+
+
+###### 关机重启
+
+-  shutdown  关机默认一分钟后执行  
+- shutdown -c 取消关机
+- shutdown  now 现在关机
+- shutdown  17.50 定时关机
+
+```
+[root@hadoop100 ~]# shutdown 
+[root@hadoop100 ~]# shutdown -c
+```
+
+
+
+- 基本语法
+
+  1. sync														功能描述：将数据从内存同步到硬盘中
+2. halt												         功能描述：停机，关系统， 但不断电
+  3. poweroff										        功能描述：关机， 断电
+4. reboot                                                    功能描述： 重启， 等同于 showdown -r now
+  5. shutdown 【选项】  时间
+
+| 选项 |        功能         |
+| :--: | :-----------------: |
+|  -h  |     相当于关机      |
+|  -H  | 停机， 相当于--halt |
+|  -r  |  -r = reboot  重启  |
+
+| 时间 |               功能               |
+| :--: | :------------------------------: |
+| now  |             立刻关机             |
+| 时间 | 等待多久关机后关机（单位是分钟） |
+
