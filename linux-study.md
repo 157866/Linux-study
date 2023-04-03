@@ -760,7 +760,7 @@ Linux系统有7个运行级别(runlevel)：
   - 设置当前级别
   
   ```
-  [root@hadoop100 /]# systemctl get-default TARGET.target (这里的TARGET 换成multi-user或者graphical)
+  [root@hadoop100 /]# systemctl set-default TARGET.target (这里的TARGET 换成multi-user或者graphical)
   ```
   
   
@@ -970,7 +970,7 @@ abrt-oops.service                             enabled
 
 - 基本语法
 
-  1. sync														功能描述：将数据从内存同步到硬盘中
+1. sync														功能描述：将数据从内存同步到硬盘中
 2. halt												         功能描述：停机，关系统， 但不断电
   3. poweroff										        功能描述：关机， 断电
 4. reboot                                                    功能描述： 重启， 等同于 showdown -r now
@@ -986,4 +986,493 @@ abrt-oops.service                             enabled
 | :--: | :------------------------------: |
 | now  |             立刻关机             |
 | 时间 | 等待多久关机后关机（单位是分钟） |
+
+
+
+###  5.常用基本命令
+
+Shell可以看作是一个命令解释器，为我们提供了交互式的文本控制台界面。我们可以通过终端控制台来输入命令，由shell进行解释并最终交给内核执行。本章就将分类介绍常用的基本shell命令。
+
+#### 5.1 帮助命令
+
+#####  5.1.1man获取帮助信息
+
+- 基本语法
+  - man[命令或配置文件]   						（功能描述：获得帮助信息）
+  - man  man
+
+```
+[root@hadoop100 ~]# man shutdown
+```
+
+
+
+##### 5.1.2 help获取shell的内置命令的帮助信息
+
+一部分基础功能的系统命令是直接内嵌在shell中的，系统加载启动之后会随着shell 一起加载，常驻系统内存中。这部分命令被称为“内置(built-in) 命令”;相应的其它命令被称为“外部命令”。
+
+- 基本语法
+
+  - help 命令											功能描述：获取shell内置命令和帮助信息
+  - 命令 --help 										功能描述：获取帮助信息
+
+- 案例实操
+
+  - 查看cd命令的操作信息
+
+  ```
+  [root@hadoop100 ~]# help cd
+  [root@hadoop100 ~]# cd --help 
+  ```
+
+或者
+
+- 基本语法
+
+  - type 命令                                              功能描述：判断是内嵌还是外部命令
+
+- 案例实操
+
+  - 查看cd的类型
+
+  ```
+  [root@hadoop100 ~]# type cd
+  cd 是 shell 内嵌
+  [root@hadoop100 ~]# type ls
+  ls 是 `ls --color=auto' 的别名
+  [root@hadoop100 ~]# 
+  
+  ```
+
+
+
+##### 5.1.3查看操作历史记录
+
+```
+ [root@hadoop100 ~]# history 
+```
+
+
+
+##### 5.1.4常用快捷键
+
+| 常用快捷键 |                   功能                    |
+| :--------: | :---------------------------------------: |
+|  CTRL + c  |                 停止进程                  |
+|  CTRL + l  | 清屏幕， 等同于clear ，彻底清屏是： reset |
+|    TAB     |         提示， 更重要的是防止敲错         |
+|   上下键   |             查找执行过的命令              |
+|            |                                           |
+|            |                                           |
+
+
+
+#### 5.2文件目录类
+
+##### 5.2.1 pwd 显示工作目录的绝对路径
+
+pwd -》 point working directory  打印工作目录
+
+- 基本语法
+
+  - pwd														详细信息：显示工作目录的绝对路径
+
+- 案例实例
+
+  - 显示工作目录的绝对路径
+
+    ```
+    [root@hadoop100 ~]# pwd
+    /root
+    ```
+
+  - 相对路径     当前路径 /root/桌面
+
+    - cd ../视频  							可以../代替/root
+
+  - 绝对路径       绝对路径是以/根目录开始的
+
+    - cd /root/桌面
+
+  - cd - 来回跳转根目录和当前目录
+
+##### 5.2.2 ls 列出目录的内容
+
+ls -》  list   列出目录内容
+
+- 基本语法
+
+  - ls [选择]  [目录或者是文件]
+
+- 选项说明
+
+  | 选项 |                        功能                        |
+  | :--: | :------------------------------------------------: |
+  |  -a  |              显示全部文件包括隐藏文件              |
+  |  -l  | 长数据串列出，包含文件的属性与权限等数据；等价于ll |
+
+
+
+##### 5.2.3 创建或删除目录
+
+- 创建目录
+
+  - mkdir   目录名称  								无/就是在当前目录下创建
+  - mkdir  /目录名称                                  根目录下创建
+  - mkdir -p  /name/name                        可以创建多个目录
+
+  ```
+  [root@hadoop100 /]# mkdir -p /a/b/c
+  [root@hadoop100 /]# ls /a/b/
+  c
+  
+  ```
+
+- 删除目录
+
+  - rmdir    目录名称                                   如果该目录里面为空可以直接删除否则看下面
+  - rmdir -p    /a/b/c                                  如果b里面和a里面没有其它目录那么直接删除a/b/c
+    - 注意创建可以加上/根目录  删除不能带上根目录/
+
+```
+[root@hadoop100 /]# mkdir -p /a/b/c
+[root@hadoop100 /]# ls
+a  bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+[root@hadoop100 /]# rmdir -p a/b/c
+[root@hadoop100 /]# ls
+bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+
+```
+
+
+
+##### 5.2.4 创建或删除文件
+
+- 基本语法
+
+  - touch   文件名称                                     可以不带后缀名称默认就是文本文件   touch（触摸）
+  - 实际案例
+
+  ```
+  [root@hadoop100 wmt]# touch text.txt
+  ```
+
+  - vim    文件名称                                        也可以使用vim去创建文件 
+
+  ```
+  [root@hadoop100 wmt]# vim text.txt
+  ```
+
+  
+
+##### 5.2.5 cp复制文件
+
+- 基本语法
+
+  -  cp 目标文件  路径                                     cp后面如果是目录直接复制，是文件就会覆盖
+  - 实际案例
+
+  ```
+  [root@hadoop100 ~]# cp initial-setup-ks.cfg /wmt
+  [root@hadoop100 /]# ls wmt
+  initial-setup-ks.cfg  text.txt
+  
+  #覆盖
+  [root@hadoop100 ~]# cp initial-setup-ks.cfg /wmt/text.txt
+  cp：是否覆盖"/wmt/text.txt"？ y
+  
+  ```
+
+  - 递归复制
+  - cp -r 目标文件 路径                                       会复制该文件夹里面的所有的文件
+
+  ```
+  [root@hadoop100 /]# cp -r wmt /taget
+  ```
+
+  
+
+查看别名 
+
+```
+[root@hadoop100 ~]# alias
+
+```
+
+
+
+##### 5.2.6 rm删除文件或目录
+
+- 基本语法
+
+  - rm [选择] deleteFile 
+    - rm  -rf  /*      					入门到入狱
+  - 选项说明白
+
+  | 选项 |               功能               |
+  | :--: | :------------------------------: |
+  |  -r  |    递归删除目录里面的所有内容    |
+  |  -f  | 强制删除操作，并且不提示是否删除 |
+  |  -v  |           显示执行过程           |
+
+  - 实际操作
+
+  ```
+  [root@hadoop100 /]# rm -r wmt02
+  rm：是否进入目录"wmt02"? y
+  rm：是否进入目录"wmt02/wmt"? y
+  rm：是否删除普通文件 "wmt02/wmt/initial-setup-ks.cfg"？y
+  rm：是否删除普通文件 "wmt02/wmt/text.txt"？y
+  rm：是否进入目录"wmt02/wmt/wmt"? y
+  rm：是否删除普通文件 "wmt02/wmt/wmt/initial-setup-ks.cfg"？y
+  rm：是否删除普通文件 "wmt02/wmt/wmt/text.txt"？y
+  rm：是否删除目录 "wmt02/wmt/wmt"？y
+  rm：是否删除目录 "wmt02/wmt"？y
+  rm：是否删除目录 "wmt02"？y
+  [root@hadoop100 /]# 
+  
+  ```
+
+  - rm   -f    ./*                                           ./* 解释  当前文件夹下的所有文件
+
+  ```
+  [root@hadoop100 wmt]# rm -f ./*
+  ```
+
+  
+
+
+
+##### 5.2.7 mv移动文件与目录或重命名
+
+- 基础操作
+
+  - mv oldNameFlie 	newNanemFlie                                         重命名
+  - mv   /temp/moveflie/targetFolder                                          移动
+
+- 实际案例
+
+  ```Linux
+  #重命名
+  [root@hadoop100 ~]# mv initial-setup-ks.cfg newNaem.cfg
+  
+  #移动
+  [root@hadoop100 ~]# mv newNaem.cfg /wmt
+  
+  #移动并且重命名
+  
+  [root@hadoop100 ~]# mv newNaem.cfg /wmt/新的文件名
+  ```
+
+
+
+##### 5.2.8 cat查看文件内容
+
+查看文件内容从第一行开始显示
+
+- 基本语法
+
+  - cat [选项]  要查看的文件
+
+- 选项说明
+
+  -  -n                                                          显示所有行包括空格行并且显示行号
+
+- 案例实操
+
+  ```
+  
+  [root@hadoop100 ~]# cat newNaem.cfg 
+  
+  [root@hadoop100 ~]# cat -n newNaem.cfg 
+  
+  ```
+
+
+
+##### 5.2.9more 文件内容分屏查看器
+
+more指令是一个基于VI编辑器的文本过滤器，它以全屏幕的方式按页显示文本文件白内容。more 指令中内置了若干快捷键，详见操作说明。
+
+
+
+- 基本语法
+
+  - more 要查看的文件
+
+  - 操作说明
+
+    |      操作       |              功能说明              |
+    | :-------------: | :--------------------------------: |
+    | space（空白键） |            代表向下翻页            |
+    |      Enter      |            表示下翻一行            |
+    |        q        | 代表立即离开more，不在显示文件内容 |
+    |     CTRL+F      |            向下滚动一屏            |
+    |     CTRL+B      |             返回上一屏             |
+    |        =        |            输出当前行号            |
+    |       :f        |        输出文件名和当前行号        |
+
+    
+
+
+
+##### 5.2.10 less 分屏显示文件内容
+
+less指令用来分屏查看文件内容，它的功能与more指令类似，但是比more指令更加强大，支持各种显示终端。less 指令在显示文件内容时，并不是一次将整个文件加载之后才显示，而是根据显示需要加载内容，对于显示大型文件具有较高的效率。
+
+
+
+- 基本语法
+
+  - less     查看的文件
+  - 操作说明
+
+  |   操作   |              功能说明              |
+  | :------: | :--------------------------------: |
+  |   空格   |              向下翻页              |
+  | pageDown |            向下翻动一页            |
+  |  pageUp  |            向上翻动一页            |
+  |  /字串   | 向下查找   n向下翻找    N向上翻找  |
+  |  ？字串  | 向上查找    n向下翻找    N向上翻找 |
+  |    q     |              离开less              |
+
+
+
+##### 5.2.11 echo
+
+echo输出内容到控制台
+
+- 基本语法
+
+  - echo [选项]  [输出内容]
+
+    - 选项：
+
+      - -e  支持反斜杠转换
+
+| 控制字符 |        作用         |
+| :------: | :-----------------: |
+|   \\\    |        输出\        |
+|    \n    |        换行         |
+|    \t    | 制表符，也就是Tab键 |
+
+​        
+
+##### 5.2.12 > 输出重定向  >>追加
+
+- 基本语法
+
+  - ls -l    >    文件                                                              列表内容覆盖写入文件中
+  - ls - al  >>    文件                                                            列表内容追加进文件中
+  - cat 文件1  >    文件2                                                     把文件1覆盖掉文件2
+  - echo "内容"   >>  文件                                                  把内容追加进入文件中
+
+- 实际操作
+
+  - 将ls -l 写入到target
+
+  ```
+  [root@hadoop100 wmt]# ls -l > target
+  [root@hadoop100 wmt]# ls
+  initial-setup-ks.cfg  newNaem.cfg  target  text.txt  wmt
+  [root@hadoop100 wmt]# cat target
+  总用量 12
+  -rw-r--r--. 1 root root 1727 4月   3 11:15 initial-setup-ks.cfg
+  -rw-r--r--. 1 root root 1727 3月  19 21:59 newNaem.cfg
+  -rw-r--r--. 1 root root    0 4月   3 19:48 target
+  -rw-r--r--. 1 root root 1727 4月   3 11:21 text.txt
+  drwxr-xr-x. 2 root root  
+  ```
+
+  - 将ls - al  追加到 target
+
+  ```
+  [root@hadoop100 wmt]# ls -al >> target
+  [root@hadoop100 wmt]# cat target 
+  总用量 12
+  -rw-r--r--. 1 root root 1727 4月   3 11:15 initial-setup-ks.cfg
+  省略
+  drwxr-xr-x. 2 root root    6 4月   3 17:49 wmt
+  总用量 16
+  drwxr-xr-x.  3 root root   94 4月   3 19:48 .
+  dr-xr-xr-x. 18 root root  235 4月   3 17:42 ..
+  省略
+  drwxr-xr-x.  2 root root    6 4月   3 17:49 wmt
+  ```
+
+  - cat 文件1  >    文件2      
+
+  ```
+  [root@hadoop100 wmt]# cat initial-setup-ks.cfg  > target
+  [root@hadoop100 wmt]# cat target
+  #version=DEVEL
+  # X Window System configuration information
+  xconfig  --startxonboot
+  # License agreement
+  eula --agreed
+  # System authorization information
+  auth --enableshadow --passalgo=sha512
+  # Use CDROM installation media
+  cdrom
+  
+  ```
+
+  - echo "内容"   >>  文件    
+
+  ```
+  [root@hadoop100 wmt]# echo -e "hello \n world" >> target
+  [root@hadoop100 wmt]# cat target 
+  hello 
+   world
+  
+  ```
+
+
+
+##### 5.2.13  haed 显示文件头部
+
+haed用于显示文件开头部分内容，默认情况下的head显示文件前10行的内容
+
+- 基本语法
+
+  - head   文件                                           查看文件前10行内容
+  - head -n 5  文件                                     查看文件前5行内容
+
+- 实际操作
+
+  ```
+  #默认显示10行
+  [root@hadoop100 wmt]# head initial-setup-ks.cfg 
+  
+  #显示1行
+  [root@hadoop100 wmt]# head -n 1 initial-setup-ks.cfg 
+  #version=DEVEL
+  
+  ```
+
+  
+
+##### tail 输出文件尾部内容
+
+tail 用于显示文件末尾部分内容，默认情况下的head显示文件后10行的内容
+
+- 基本语法
+  - tail 文件                                           查看文件后10行内容
+  - tail -n 5  文件                                   查看文件后5行内容
+  - tail    -f  文件                                    实时跟踪文件所有的更新
+    - tail    -f  文件  会进入一个线程   CTRL +S 是暂停    CTRL +Q是继续    CTRL +C 退出
+- 选择说明
+
+
+
+|    选项    |                功能                |
+| :--------: | :--------------------------------: |
+| -n  <行数> |        输出文件末尾n行内容         |
+|    - f     | 显示文件最新追加内容，监视文件变化 |
+
+- 实际操作
+
+```
+[root@hadoop100 wmt]# tail -f  target
+```
 
