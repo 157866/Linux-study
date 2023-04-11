@@ -1985,9 +1985,9 @@ newTeam:x:1003:
 
 
 
-#### 5.5 文件权限管理
+#### 5.6 文件权限管理
 
-##### 5.5.1文件属性
+##### 5.6.1文件属性
 
 Linux系统中不仅是对用户与组根据UID,GID进行了管理，还对Linux系统中的文件，按照用户与组进行分类，针对不同的群体进行了权限管理，用他来确定谁能通过何种方式对文件和目录进行访问和操作。
 
@@ -2051,13 +2051,15 @@ Linux系统中不仅是对用户与组根据UID,GID进行了管理，还对Linux
 
 
 
-##### 5.5.2 chmod 改变权限
+##### 5.6.2 chmod 改变权限
 
 - 基本语法
   - 第一种方式
     - chmod[{ugoa} {+-=} {rwx}] 文件或者目录
   - 第二种方式
-    - chmod [421] 文件或者目录
+    - chmod [421]  文件或者目录
+  - 目录下的所有文件都改变权限
+    - chmod [421]  -R 文件或者目录
   - 经验技巧
     - u：所有者   g：所有组   o：其他人    a：所有人
     - 4：可读   2：可写   1： 可执行                      采用的二进制   111 代表的就是7
@@ -2078,4 +2080,238 @@ Linux系统中不仅是对用户与组根据UID,GID进行了管理，还对Linux
 -rwxrwxrwx. 1 root root 1679 4月   9 21:40 anaconda-ks.cfg
 
 ```
+
+
+
+##### 5.6.3 chown 修改所有者
+
+- 基本语法
+
+  - chown  [选项]   所有者      文件
+  - 选项
+    - -R   递归修改文件所有者
+  - 实际操作
+
+  ```
+  [root@hadoop100 ~]# ll /home/tony/
+  -rwxrwxrwx. 1 root root 1679 3月  19 20:07 anaconda-ks.cfg
+  
+  [root@hadoop100 ~]# chown tony /home/tony/anaconda-ks.cfg 
+  
+  [root@hadoop100 ~]# ll /home/tony/
+  -rwxrwxrwx. 1 tony root 1679 4月   9 21:40 anaconda-ks.cfg
+  
+  ```
+
+
+
+##### 5.6.4 chgrp 修改所有组
+
+- 基本语法
+
+  - chgrp  组名  文件名称           
+
+  - 实际案例
+
+    ```
+    [root@hadoop100 tony]# ll
+    -rwx------. 1 tony root 1679 4月   9 21:40 anaconda-ks.cfg
+    
+    [root@hadoop100 tony]# chgrp newteam anaconda-ks.cfg 
+    
+    [root@hadoop100 tony]# ll
+    -rwx------. 1 tony newteam 1679 4月   9 21:40 anaconda-ks.cfg
+    
+    ```
+
+    
+
+
+
+#### 5.7 搜索查找类
+
+##### 5.7.1find查找文件或者目录
+
+find指令将从指令目录向下递归遍历其各个子目录，将满足条件的文件显示在终端
+
+- 基本语法
+
+  - find [搜索范围选项] [选择]
+  - 选择说明
+
+  |      选择       |                 功能                 |
+  | :-------------: | :----------------------------------: |
+  | -name<查询方式> |   按照指定的文件名查找模式查找文件   |
+  |  -user<用户名>  |      查找属于指定用户名所有文件      |
+  | -size<文件大小> | 按照指定的文件大小查找文件，单位为： |
+  |                 |         b------块（512字节）         |
+  |                 |             c-------字节             |
+  |                 |        w----------字（2字节）        |
+  |                 |          k-----------千字节          |
+  |                 |        M---------------兆字节        |
+  |                 |       G----------------吉字节        |
+
+##### 5.7.2 locate快速定位文件路径
+
+locate指令利用事先建立的系统中所有文件名称及路径的locate数据库实现快速定位给定的文件。Locate 指令无需遍历整个文件系统，查询速度较快。为了保证查询结果的准确度，管理员必须定期更新locate时刻。
+
+
+
+- 基本语法
+
+  - locate 文件名或者目录
+
+    - 实际操作
+
+    ```
+    [root@hadoop100 home]# locate wmt
+    /wmt
+    ```
+
+    
+
+  - 实际经验
+
+    - locate实际使用前 需要先执行一下 updatedb
+
+    ```
+    [root@hadoop100 home]# updatedb 
+    ```
+
+- 查看命令的路径
+
+  - 基本语法
+
+  - whereis   指令
+
+    - 实际操作
+
+    ```
+    [root@hadoop100 home]# whereis sudo
+    
+    ```
+
+    
+
+##### 5.7.3 grep 过滤查找及“|”管道符
+
+管道符，“|”，表示将前一个命令的处理结果输出传递给后面的命令处理。
+
+- 基本语法
+
+  - grep选项   查找内容  源文件
+
+- 选项说明
+
+  - -n       显示匹配和行号
+
+- 实际案例
+
+  ```
+  [root@hadoop100 桌面]# grep -n boot initial-setup-ks.cfg 
+  3:xconfig  --startxonboot
+  12:# Run the Setup Agent on first boot
+  ```
+
+  
+
+- 基本语法
+
+  - wc word count  单词计数         返回如下
+  - 行数         单词数量             内存大小
+  - 实际操作
+
+  ```
+  [root@hadoop100 桌面]# grep -n boot initial-setup-ks.cfg | wc
+        7      27     287
+  #   行数   单词数量   内存大小
+  
+  ```
+
+
+
+#### 5.8压缩和解压类
+
+##### 5.8.1gzip / gunzip 压缩
+
+- 基本语法
+
+  - gzip      文件                                                  功能描述：压缩文件，只能将文件压缩为*.gz文件
+  - gunzip  文件 .gz                                            功能描述：解压缩文件命令
+
+- 经验技巧
+
+  1. 只能压缩文件不能压缩目录
+  2. 不保留原来的文件
+  3. 同时多个文件就会产生多个压缩包
+
+- 案例实操
+
+  - gzip压缩
+
+  ````
+  -rw-r--r--. 1 root root 1740 3月  29 08:26 initial-setup-ks.cfg
+  #压缩变小了
+  [root@hadoop100 桌面]# gzip initial-setup-ks.cfg 
+  
+  -rw-r--r--. 1 root root 1005 3月  29 08:26 initial-setup-ks.cfg.gz
+  
+  ````
+  - gunzip
+
+  ```
+  [root@hadoop100 桌面]# gunzip initial-setup-ks.cfg.gz 
+  ```
+
+  
+
+##### 5.8.2 zip / unzip 压缩
+
+- 基本语法
+
+  - zip [选择] 压缩后的名字.zip   将要压缩的内容                            功能描述：压缩文件和目录的命令
+  - unzip  [选择] xxx.zip                                                                      功能描述：解压文件
+
+- 选择说明
+
+  | zip选项 |   功能   |
+  | :-----: | :------: |
+  |   -r    | 压缩目录 |
+
+  |  unzip选项  |            功能            |
+  | :---------: | :------------------------: |
+  | -d 《目录》 | 指定压缩后的文件存放的目录 |
+
+
+
+- 经验技巧
+
+  ​	zip压缩命令在window/Linux系统都是通用，可以压缩目录且保留源文件。
+
+  ​	
+
+  - 实际案例 zip
+
+  ```
+  [root@hadoop100 桌面]# zip myinit.zip initial-setup-ks.cfg 
+    adding: initial-setup-ks.cfg (deflated 44%)
+  [root@hadoop100 桌面]# ll
+  -rw-r--r--. 1 root root 1740 3月  29 08:26 initial-setup-ks.cfg
+  -rw-r--r--. 1 root root 1156 4月  10 21:46 myinit.zip
+  
+  ```
+
+  - 实际案例 unzip   -d 解压到根目录
+
+  ```
+  [root@hadoop100 桌面]# unzip -d / myinit.zip 
+  Archive:  myinit.zip
+    inflating: /initial-setup-ks.cfg 
+  ```
+
+
+
+##### 5.8.3 tar 打包
+
+
 
