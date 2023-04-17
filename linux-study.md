@@ -2727,7 +2727,7 @@ root       5250  0.0  0.0 112828   976 pts/0    R+   21:00   0:00 grep --color=a
 
 
 
-##### 5.10.4 pstree 查看进程树
+##### 5.10.3pstree 查看进程树
 
 安装pstree：
 
@@ -2740,4 +2740,472 @@ root       5250  0.0  0.0 112828   976 pts/0    R+   21:00   0:00 grep --color=a
 - 选项说明
   - -p                                                              功能描述：显示进程的PID
   - -u                                                              功能描述：显示进程所属用户
+
+##### 5.10.4top实时监控系统进程状态
+
+- 基本命令 
+
+  - top [选项]
+
+- 选项说明
+
+  |  选项   |                             功能                             |
+  | :-----: | :----------------------------------------------------------: |
+  | -d 秒数 | 指定 top 命令每隔几秒更新，默认是3秒在top命令的交互模式当中执行的命令 |
+  |   -i    |              使用top不显示任何闲置或者僵死进程               |
+  |   -p    |        通过指定监控进程的ID来仅仅监控某一个进程的状态        |
+
+
+
+
+
+- 操作说明
+
+| 操作 |        功能        |
+| :--: | :----------------: |
+|  u   |  查看指定用户进程  |
+|  k   |      杀死进程      |
+|  P   | 以cpu使用效率排序  |
+|  M   | 以内存使用频率排序 |
+
+
+
+#####  netstat 显示网络状态和端口占用信息
+
+- 基本语法
+
+  - netstat -anp |    进程号                                             功能描述：查看该进程网络信息
+  - netstat  -nlp| grep    端口号                                     功能描述：查看网络端口占用情况      
+
+- 选项说明
+
+  | 选项 |                         功能                         |
+  | :--: | :--------------------------------------------------: |
+  |  -a  | 显示所有正在监听（listen）和未监听的套接字（socket） |
+  |  -n  |          拒绝显示别名，能显示数字全显示数字          |
+  |  -l  |               仅列出在监听的服务器状态               |
+  |  -p  |                表示显示那个进程在调用                |
+
+- 实际操作
+
+```
+[root@hadoop100 ~]# netstat -anp | grep sshd
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1095/sshd           
+tcp6       0      0 :::22                   :::*                    LISTEN      1095/sshd           
+unix  3      [ ]         STREAM     CONNECTED     26626    1095/sshd     
+```
+
+
+
+#### 5.11 crontab 系统定时任务
+
+
+
+##### 5.11.1 crontab 服务管理
+
+1. 重新启动crond服务
+
+```
+[root@hadoop100 ~]# systemctl restart crond.service 
+```
+
+
+
+
+
+##### 5.11.2 定时任务设置
+
+- crontab [选项]
+
+
+
+- 选项说明
+
+| 选项 |             功能              |
+| :--: | :---------------------------: |
+|  -e  |     编辑 crontab 定时任务     |
+|  -l  |       查询crontab 任务        |
+|  -r  | 删除当前用户所有的crontab任务 |
+
+
+
+- 实际操作
+
+```
+[root@hadoop100 ~]# crontab -l
+no crontab for root
+```
+
+
+
+```
+[root@hadoop100 ~]# crontab -e
+```
+
+​	进入crontab编辑页面，会打开vim编辑你的工作
+
+​                  *********执行的任务
+
+|    项目     |        含义        |           范围            |
+| :---------: | :----------------: | :-----------------------: |
+| 第一个“ * ” |  一小时的第几分钟  |           0-59            |
+| 第二个“ * ” | 一天中的第几个小时 |           0-23            |
+| 第三个“ * ” |  一个月中的第几天  |           1-31            |
+| 第四个“ * ” |  一年中的第几个月  |           1-12            |
+| 第五个“ * ” |   一周中的星期几   | 0-7  （0和7都代表星期日） |
+
+
+
+特殊符号
+
+
+
+| 特殊符号 |                             含义                             |
+| :------: | :----------------------------------------------------------: |
+|    *     | *代表任何时间。比如第一个“ * ”就代表一小时中每分钟都执行一次的意思 |
+|    ，    | 代表连续的时间范围。比如 “0  8，12，16命令”， 代表在每天的8点0分，12点0分，16点0分都执行一次命令 |
+|    -     | 代表连续的时间范围。比如“05 * * 1-6命令”，代表周一到周六的凌晨5点0分执行命令 . |
+|   */n    | 代表每隔多久执行一次。比如“*/10 * * * * 命令”，代表每隔10分钟就执行一遍命令< |
+
+
+
+- 实际操作
+
+```
+[root@hadoop100 ~]# crontab -l
+*/1 * * * * echo "hello crontab " >> /root/hello
+
+```
+
+
+
+
+
+### 6.软件包管理
+
+
+
+#### 6.1 RPM
+
+
+
+##### 6.1.1 RPM概述
+
+RPM ( RedHat Package Manager)，RedHat软件包管理工具，类似windows 里面的setup.exe是Linux这系列操作系统里面的打包安装工具，它虽然是RedHat的标志，但理念是通用的。
+RPM包的名称格式4
+Apache-1 .3.23-11.i386.rpm
+
+“apache"软件名称
+
+“13.23-11”软件的版本号，主版本和此版本
+
+“i386”是软件所运行的硬件平台，Intel 32位处理器的统称
+
+“rpm”文件扩展名，代表RPM包
+
+
+
+##### 6.1.2 rpm -qa 查询
+
+- 基本语法
+  - rpm -qa                                                                   功能描述：查询所安装的所有rpm软件包
+- 经验技巧
+  - 由于软件包比较多，一般会采用过滤，rpm -qa | grep  rpm 软件包
+- 实际操作
+
+```
+[root@hadoop100 ~]# rpm -qa | grep firefox
+firefox-68.10.0-1.el7.centos.x86_64
+```
+
+
+
+##### 6.1.3 rpm -e 卸载
+
+- 基本语法
+  - rpm -e   RPM软件包                                                      功能描述：卸载软件包
+  - rpm -e --nodeps 软件包                                                功能描述：不检查依赖直接卸载 ，可能会影响软件使用
+
+
+
+- 实际操作
+
+```
+[root@hadoop100 ~]# rpm -qa firefox
+firefox-68.10.0-1.el7.centos.x86_64
+[root@hadoop100 ~]# rpm -e firefox
+```
+
+
+
+##### 6.1.4 rpm -ivh 安装
+
+- 基本语法
+  - rpm -ivh  完整包名
+- 选项说明
+
+|  名称   |          功能          |
+| :-----: | :--------------------: |
+|   -i    |      -install下载      |
+|   -v    | -verbose，显示详细信息 |
+|   -h    |    -hash 显示进度条    |
+| -nodeps |    安装前不检查依赖    |
+
+
+
+- 实际操作
+
+```
+[root@hadoop100 Packages]# ls | grep firefox
+firefox-68.10.0-1.el7.centos.x86_64.rpm
+[root@hadoop100 Packages]# rpm -ivh firefox-68.10.0-1.el7.centos.x86_64.rpm
+```
+
+
+
+#### 6.2 YUM仓库配置
+
+##### 6.2.1 YUM概述
+
+YUM (全称为Yellow dog Updater, Modified)是一个在Fedora和RedHat以及CentOS中的Shell 前端软件包管理器。基于RPM包管理，能够从指定的服务器自动下载RPM包并且安装，可以自动处理依赖性关系，并且一次安装所有依赖的软件包，无须繁琐地一-次次下载、安装，
+
+
+
+##### 6.2.2 YUM常用命令
+
+- 基本语法
+
+  - yum [选项] [参数]
+
+- 选项说明
+
+  | 选项 |        说明        |
+  | :--: | :----------------: |
+  |  -y  | 无视风险继续安装 🐶 |
+
+
+
+- 参数说明
+
+  |     参数     |             功能              |
+  | :----------: | :---------------------------: |
+  |   install    |         安装rpm软件包         |
+  |    update    |         更新rpm软件包         |
+  | check-update | 检查是否可有用的更新rpm软件包 |
+  |    remove    |      删除指定的rpm软件包      |
+  |     list     |        显示软件包信息         |
+  |    clear     |       清除yum过期的缓存       |
+  |   deplist    |  显示yum软件包的所有依赖关系  |
+
+
+
+- 实际操作
+
+  ```
+  [root@hadoop100 Packages]# yum list | grep firefox
+  firefox.x86_64                              68.10.0-1.el7.centos       @anaconda
+  firefox.i686                                102.9.0-3.el7.centos       updates  
+  firefox.x86_64                              102.9.0-3.el7.centos       updates  
+  [root@hadoop100 Packages]# yum remove firefox
+  删除:
+    firefox.x86_64 0:68.10.0-1.el7.centos                                                                    完毕！
+  [root@hadoop100 Packages]# yum list | grep firefox
+  firefox.i686                                102.9.0-3.el7.centos       updates  
+  firefox.x86_64                              102.9.0-3.el7.centos       updates  
+  [root@hadoop100 Packages]# yum -y install firefox
+  ```
+
+
+
+##### 6.2.3 YUM 配置数据源
+
+1. 安装wget
+
+```
+yum install -y wget
+```
+
+2. 备份
+
+```
+cd /etc/yum.repos.d/
+mv CentOS-Base.repo CentOS-Base.repo.back
+```
+
+3.下载alias镜像
+
+```
+wget -O CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+```
+
+4. 重新加载yum
+
+```
+yum clean all
+yum makecache
+```
+
+
+
+### 7.克隆虚拟机
+
+
+
+ #### 7.1 克隆
+
+1. 从现有虚拟机(关机状态)克隆出新虚拟机，右键选择管理=>>克隆
+
+![image-20230416170233152](C:\Users\34912\Desktop\linux-study\imgs\image-20230416170233152.png)
+
+2.创建完整克隆
+
+![image-20230416170718036](C:\Users\34912\Desktop\linux-study\imgs\image-20230416170718036.png)
+
+
+
+重新配置IP地址
+
+```
+[root@hadoop100 ~]# vim /etc/sysconfig/network-scripts/ifcfg-ens33 
+```
+
+
+
+ 重启动IP地址
+
+```
+[root@hadoop100 ~]# systemctl restart network
+```
+
+
+
+配置用户名称
+
+```
+[root@hadoop100 ~]# hostnamectl set-hostname hadoop101
+```
+
+
+
+
+
+## shell
+
+Shell是一个命令行解释器，它接收应用程序/用户命令，然后调用操作系统内核。
+
+![image-20230416175714176](C:\Users\34912\Desktop\linux-study\imgs\image-20230416175714176.png)
+
+Redhat 的centOS7 shell的解析器就是bash
+
+
+
+### 1.0 shell脚本
+
+- 脚本格式
+
+  - 脚本以#!/bin/bash 开头      指定脚本解析器  bash 可以简写sh
+
+    ```
+    lrwxrwxrwx. 1 root root          4 3月  19 19:55 sh -> bash
+    ```
+
+​	
+
+- 第一个脚本：hello world
+
+  - 需求：创建一个shell脚本，输出hello world
+  - 实例案例：
+
+  ```
+  #编写hello.th
+  #!/bin/bash
+  echo "hello, world"                  
+  ```
+
+  
+
+- 启动脚本
+- 基本语法
+  - bash   脚本路径                          父子shell  启动脚本后可能影响不到父shell
+  - sh        脚本路径                         父子shell   启动脚本后可能影响不到父shell
+  - ./ 脚本名称                                    需要开启x权限    没有父子shell的限制  
+  - source   脚本路径                          没有父子shell的限制  
+  - . 脚本路径                                           是. 命令   没有父子shell的限制  
+
+```
+[root@hadoop100 shell_script]# sh /shell_script/hello.th 
+hello, world
+
+```
+
+
+
+- 第二种方式 常用
+
+  - 开启权限     开启文本的执行权力
+
+     ```
+    [root@hadoop100 shell_script]# chmod u+x hello.th 
+    
+    [root@hadoop100 shell_script]# ll
+    -rwxr--r--. 1 root root 32 4月  17 11:23 hello.th
+    
+     ```
+
+  - 直接运行该文本
+
+    - 相对路径需要加 ./
+
+    ```
+    [root@hadoop100 shell_script]# ./hello.th 
+    hello, world
+    ```
+
+    
+
+  什么是父子shell
+
+  原因：
+
+  1. 前bash和sh都是在当前shell中打开一个子shell来执行脚本内容，当脚本内容结束，则子shell关闭，回到父shell中。
+
+  
+
+  2. 第三种，也就是使用在脚本路径前加“ . ”或者source 的方式，可以使脚本内容在当前shell里执行，而无需打开子shel!这也是为什么我们每次要修改完/etc/profile文件以后，需要source一下的原因。
+
+  
+
+  3. 开子shell与不开子shell的区别就在于，环境变量的继承关系，如在子shell中设置的当前变量，父shell 是不可见的。
+
+  ```
+  [root@hadoop100 shell_script]# ps -f
+  #只有一个-bash
+  UID         PID   PPID  C STIME TTY          TIME CMD
+  root       2472   2466  0 10:57 pts/1    00:00:00 -bash
+  root       3603   2472  0 12:01 pts/1    00:00:00 ps -f
+  #开启一个自bash 2472 
+  [root@hadoop100 shell_script]# bash
+  [root@hadoop100 shell_script]# ps -f
+  UID         PID   PPID  C STIME TTY          TIME CMD
+  root       2472   2466  0 10:57 pts/1    00:00:00 -bash
+  root       3604   2472  1 12:01 pts/1    00:00:00 bash
+  root       3637   3604  0 12:01 pts/1    00:00:00 ps -f
+  #运行脚本
+  [root@hadoop100 shell_script]# bash hello.th 
+  hello, world
+  #退出自shell
+  [root@hadoop100 shell_script]# exit
+  exit
+  [root@hadoop100 shell_script]# 
+  
+  
+  ```
+
+
+
+
+
+### 2.0 变量
+
+
 
