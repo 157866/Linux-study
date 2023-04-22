@@ -4,6 +4,8 @@
 
 ## liunx
 
+[TOC]
+
 
 
 ###  1.liunx 文件
@@ -3150,7 +3152,7 @@ hello, world
     [root@hadoop100 shell_script]# ll
     -rwxr--r--. 1 root root 32 4月  17 11:23 hello.th
     
-     ```
+    ```
 
   - 直接运行该文本
 
@@ -3206,6 +3208,1257 @@ hello, world
 
 
 ### 2.0 变量
+
+
+
+#### 2.1 系统预定变量
+
+- 常用系统变量
+
+  ​	$HOME, $PWD, $SHELL,$USER 等
+
+- 案例实操
+
+  - 查看系统变量的值
+
+  ```
+  [root@hadoop100 shell_script]# cat hello.th 
+  #!/bin/bash
+  echo "$HOME"                    #输出结果 /root
+  echo "$USER"                    #输出结果 root
+  echo "$SHELL"                   #输出结果 /bin/bash
+  echo "$PWD"                     #输出结果 /shell_script
+  ```
+
+- 查看全局变量
+
+  - env                                                                       只能看见系统的全局变量    environment简写env 
+  - printenv   变量名称全大写  不需要$                 打印该变量
+
+
+
+- 查看全局变量和函数
+  - set
+
+
+
+#### 2.2自定义环境变量
+
+##### 2.2.1 定义局部变量
+
+- 基本语法
+  - 定义变量：变量名=变量值， **注意，=号前后不能有空格**
+  - 撤销变量：unset  变量名        **可以在任何子目录下撤销变量**
+  - 声明静态变量：redonly 变量，注意不能unset
+
+
+
+- 变量定义规则
+
+  (1)变量名称可以由字母、数字和下划线组成，但是不能以数字开头，环境变量名建议大写。
+
+  (2)等号两侧不能有空格
+
+  (3)在bash中，变量默认类型都是字符串类型，无法直接进行数值运算。
+
+  (4)变量的值如果有空格，需要使用双引号或单引号括起来。
+
+
+
+- 实际技巧
+  - 我发现在子bash里面定义的局部变量只能子bash可以访问，注意创建变量的位置
+
+- 实际操作
+  - 这种方式定义的变量为局部变量
+
+```
+[root@hadoop100 ~]# echo $my_var
+
+[root@hadoop100 ~]# my_var=hello
+
+[root@hadoop100 ~]# set | grep my_var
+my_var=hello
+
+[root@hadoop100 ~]# echo $my_var
+hello
+#局部变量的证明
+[root@hadoop100 ~]# bash
+[root@hadoop100 ~]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       3518   3394  1 20:36 pts/1    00:00:00 bash
+root       3551   3518  0 20:36 pts/1    00:00:00 ps -f
+[root@hadoop100 ~]# echo $my_var
+
+[root@hadoop100 ~]# exit
+exit
+[root@hadoop100 ~]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       3553   3394  0 20:36 pts/1    00:00:00 ps -f
+[root@hadoop100 ~]# echo $my_var 
+hello
+
+#声明静态变量
+[root@hadoop100 shell_script]# readonly a=1
+[root@hadoop100 shell_script]# echo $a
+1
+[root@hadoop100 shell_script]# a=12
+bash: a: 只读变量
+```
+
+
+
+##### 2.2.2 提升作用域
+
+- 基本语法
+  - export 变量名
+
+
+
+- 经验提示
+  - **在子bash中修改变量 只能作用于子bash中不会影响到外部的bash**
+- 实际操作
+
+```
+[root@hadoop100 ~]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       3604   3394  0 20:41 pts/1    00:00:00 ps -f
+[root@hadoop100 ~]# echo $my_var 
+hello
+[root@hadoop100 ~]# bash
+[root@hadoop100 ~]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       3606   3394  0 20:41 pts/1    00:00:00 bash
+root       3639   3606  0 20:41 pts/1    00:00:00 ps -f
+[root@hadoop100 ~]# echo $my_var
+
+[root@hadoop100 ~]# exit
+exit
+[root@hadoop100 ~]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       3652   3394  0 20:42 pts/1    00:00:00 ps -f
+#提升作用域
+[root@hadoop100 ~]# export my_var
+[root@hadoop100 ~]# bash
+[root@hadoop100 ~]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       3657   3394  0 20:42 pts/1    00:00:00 bash
+root       3686   3657  0 20:42 pts/1    00:00:00 ps -f
+[root@hadoop100 ~]# echo $my_var 
+hello
+
+```
+
+- 作用域的展示
+  - my-var 为全局作用域
+  -  new_var 为子bash的作用域
+
+```
+[root@hadoop100 shell_script]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       4182   3394  0 21:09 pts/1    00:00:00 ps -f
+[root@hadoop100 shell_script]# echo $my_var 
+hello
+[root@hadoop100 shell_script]# bash
+[root@hadoop100 shell_script]# new_var="我是子bash中的局部变量"
+[root@hadoop100 shell_script]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       4198   3394  0 21:10 pts/1    00:00:00 bash
+root       4226   4198  0 21:10 pts/1    00:00:00 ps -f
+[root@hadoop100 shell_script]# vim hello.th 
+[root@hadoop100 shell_script]# ./hello.th 
+hello, world
+hello
+
+[root@hadoop100 shell_script]# source hello.th 
+hello, world
+hello
+我是子bash中的局部变量
+[root@hadoop100 shell_script]# exit 
+exit
+[root@hadoop100 shell_script]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       4256   3394  0 21:12 pts/1    00:00:00 ps -f
+[root@hadoop100 shell_script]# ./hello.th 
+hello, world
+hello
+
+[root@hadoop100 shell_script]# . hello.th 
+hello, world
+hello
+我是子bash中的局部变量
+
+#提升作用域的方法
+[root@hadoop100 shell_script]# ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+root       3394   3390  0 20:28 pts/1    00:00:00 -bash
+root       4356   3394  0 21:19 pts/1    00:00:00 ps -f
+[root@hadoop100 shell_script]# export new_var
+[root@hadoop100 shell_script]# ./hello.th 
+hello, world
+hello
+我是子bash中的局部变量
+[root@hadoop100 shell_script]# bash
+[root@hadoop100 shell_script]# ./hello.th 
+hello, world
+hello
+我是子bash中的局部变量
+
+            
+```
+
+
+
+ hello.th 中的配置
+
+```
+#!/bin/bash
+echo "hello, world"
+echo $my_var
+echo $new_var
+~  
+```
+
+
+
+#### 2.3 特殊变量
+
+##### 2.3.1$n
+
+- 基本语法
+
+  $n  功能描述: n为数字，$0 代表该脚本名称，$1-$9代表第一 到第九个参数， 十以上的参数，十以上的参数需要用大括号包含，如${10})  
+
+
+
+- 实际操作
+
+  - 编写shell脚本  “ ' ' ” 单引号会把$n当初字符串解析
+
+  ```
+  #!/bin/bash
+  echo '===================$n==========================='
+  echo script name: $0
+  echo 1parame: $1
+  echo 2parame: $2
+  
+  ```
+  - 开启权限
+
+    ```
+    [root@hadoop100 shell_script]# chmod u+x parameter.sh 
+    ```
+
+  - 运行脚本
+
+    ```
+    [root@hadoop100 shell_script]# ./parameter.sh abc efg
+    ===================$n===========================
+    script name: ./parameter.sh
+    1parame: abc
+    2parame: efg
+    
+    ```
+
+    
+
+##### 2.3.2 $#
+
+- 基本语法
+
+  - $#                      功能描述: 获取所有输入参数个数，常用于循环，判断参数的个数是否正确以及加强脚本的健壮性。
+
+  
+
+- 实际操作
+
+  - 编写shell脚本
+
+  ```
+  #!/bin/bash
+  echo '===================$n==========================='
+  echo script name: $0
+  echo 1parame: $1
+  echo 2parame: $2
+  echo '===================$#==========================='
+  echo parame number: $#
+  
+  ```
+
+  - 测试
+
+  ```
+  
+  [root@hadoop100 shell_script]# ./parameter.sh 
+  ===================$n===========================
+  script name: ./parameter.sh
+  1parame:
+  2parame:
+  ===================$#===========================
+  parame number: 0
+  
+  [root@hadoop100 shell_script]# ./parameter.sh abc aa
+  ===================$n===========================
+  script name: ./parameter.sh
+  1parame: abc
+  2parame: aa
+  ===================$#===========================
+  parame number: 2
+  
+  ```
+
+
+
+##### 2.2.3 $* / $@
+
+
+
+
+- 基本语法
+
+  - $*                                     功能描述:  这个变量代表命令行中所有的参数，**$*把所有的参数看成一一个整体**
+  - $@                                    功能描述:  这个变量也代表命令行中所有的参数,**不过$@把每个参数区分对待**
+
+- 实际操作
+
+  ```
+  [root@hadoop100 shell_script]# cat parameter.sh 
+  #!/bin/bash
+  echo '===================$n==========================='
+  echo script name: $0
+  echo 1parame: $1
+  echo 2parame: $2
+  echo '===================$#==========================='
+  echo parame number: $#
+  echo '===================$*==========================='
+  echo $*
+  echo '===================$@==========================='
+  echo $@
+  
+  
+  [root@hadoop100 shell_script]# ./parameter.sh a b
+  ===================$n===========================
+  script name: ./parameter.sh
+  1parame: a
+  2parame: b
+  ===================$#===========================
+  parame number: 2
+  ===================$*===========================
+  a b
+  ===================$@===========================
+  a b
+  
+  ```
+
+
+
+##### 2.2.4 $?
+
+* 基本语法
+
+  * $?            功能描述:最后一次执行的命令的返回状态。如果这个变量的值为0，证明上一个命令正确执行;如果这个变量的值为非0 (具体是哪个数，由命令自己来决定)，则证明上一一个命令执行不正确了
+
+* 实际操作
+
+  ```
+  #上面语句正常运行则为0
+  [root@hadoop100 shell_script]# echo $?
+  0      
+  
+  [root@hadoop100 shell_script]# paramter.sh
+  bash: paramter.sh: 未找到命令...
+  [root@hadoop100 shell_script]# echo $?
+  127
+  
+  ```
+
+
+
+### 3.0 运算符
+
+- 基本语法
+
+  - "$((运算式))"   或 "$[运算式]"
+
+- 实际案例
+
+  - （2+3）*4
+
+  ```
+  [root@hadoop100 shell_script]# echo "$(((3+4)*4))"
+  28
+  
+  ```
+
+- 小案例
+
+  - add.sh  完成两数相加
+
+  ```
+  [root@hadoop100 shell_script]# ./add.sh 20 30
+  sum= 50
+  
+  [root@hadoop100 shell_script]# cat add.sh 
+  
+  #!/bin/bash
+  sum=$[$1 + $2]
+  echo sum= $sum
+  ```
+
+
+
+### 4.0 条件判断
+
+- 基本语法
+  - test condition
+  - [ condition ]                                                                 **注意：前后要有空格**
+
+
+
+- 实际案例                                     0为ture         1为false
+
+```
+
+[root@hadoop100 shell_script]# a=hello
+[root@hadoop100 shell_script]# test $a = hello
+[root@hadoop100 shell_script]# echo $?
+0
+
+[root@hadoop100 shell_script]# a=linux
+[root@hadoop100 shell_script]# test $a = hello
+[root@hadoop100 shell_script]# echo $?
+1
+
+```
+
+
+
+- 简写方式                           注意[  ] 前后都要有空格        等于前后也要有空格
+  - 实际技巧  [    ] 为false           [字符串]     为true
+
+```
+[root@hadoop100 shell_script]# [ $a = linux ]
+[root@hadoop100 shell_script]# echo $?
+0
+
+```
+
+##### 4.2常用的条件判断
+
+- 两个整数比较
+  
+
+-eq等于(equal)               																-ne不等于(not equal) 
+
+-lt小于(less than)																			-le 小于等于(less equal) 
+
+-gt大于(greater than) 	   															-ge大于等于(greater equal)
+
+
+
+注:如果是字符串之间的比较，用等号“=”判断相等;用“!=”判断不等。
+
+
+
+- 按照文件权限进行判断、
+
+  -r有读的权限(read) 
+  
+  -w有写的权限(write)
+  
+  -x .有执行的权限(execute) 
+  
+- 按照文件类型进行判断
+  
+    -e文件存在( existence) 
+    
+    -f文件存在并且是一个常规的文件(file) 
+    
+    -d文件存在并且是一个目录(directory) 
+
+
+
+- 实际操作举例
+
+```
+[root@hadoop100 shell_script]# echo $?
+0
+```
+
+
+
+- 多条件判断
+
+  - &&表示前一条命令成功才运行下一条语句，||表示上一条语句执行失败之后才执行一条语句
+  - && 可以简写为 -a （and）                            || 可以简写为-o （or）
+
+      ```
+      [root@hadoop100 ~]# [  ] && echo ok || echo NOok
+      NOok
+      [root@hadoop100 ~]# [ wmt ] && echo ok || echo NOok
+      ok
+      ```
+  
+  #加上if判断
+  [root@hadoop100 shell_script]# a=20
+  [root@hadoop100 shell_script]# if [ $a -gt 18 ] && [ $a -lt 36 ]; then echo ok;fi
+  ok
+  #简写
+  [root@hadoop100 shell_script]# if [ $a -gt 18 -a $a -lt 36 ]; then echo ok;fi
+  ok
+  
+    ```
+  
+  
+    ```
+
+
+
+### 5.0 流程控制
+
+
+
+#### 5.1 if判断
+
+- 基本语法
+
+  - 单分支
+
+    ```
+    if [ 条件判断式 ];then
+    	程序
+    fi
+    
+    
+    if [ 条件判断式 ]
+    then
+    	程序
+    fi
+
+    
+    ```
+```
+    
+  - 多分支
+  
+```
+  #基本语法
+  if [ 条件判断式 ]
+  then
+  	程序
+elif[ 条件判断式 ]
+  then
+	程序
+  else
+    	程序
+  fi	
+
+  #实际操作
+  [root@hadoop100 shell_script]# ./if_age.sh 40
+  中年
+  [root@hadoop100 shell_script]# ./if_age.sh 25
+  青年
+  [root@hadoop100 shell_script]# cat if_age.sh 
+  #!/bin/bash
+
+  if [ $1 -lt 18 ]
+  then
+  	echo  少年
+
+  elif [ $1 -le 25 -a $1 -ge 18 ]
+  then	
+  	echo 青年
+  elif [ $1 -gt 25 -a $1 -lt 50 ]
+  then	
+  	echo 中年
+  else
+  	echo 老年  
+  fi
+
+  ```
+  
+  
+  
+  
+  
+  - 实际操作
+  
+  ```
+    #!/bin/bash
+    
+    if [ $1 = wmt ]
+    then
+            echo welcome,wmt
+    else
+            echo erro
+    fi                
+    ```
+      
+    运行
+      
+    ```
+    [root@hadoop100 shell_script]# ./if.sh 
+    ./if.sh: 第 3 行:[: =: 期待一元表达式
+    erro
+    [root@hadoop100 shell_script]# ./if.sh wmt
+    welcome,wmt
+    
+    ```
+      
+    解决报错
+      
+    ```
+    #!/bin/bash
+    
+    if [ "$1"x = "wmt"x ]
+    then
+            echo welcome,wmt
+    else
+            echo erro
+    fi
+             
+    ```
+
+
+​    
+
+#### 5.2 case语句
+
+- 基本语法
+
+  ```
+  case $变量名 in
+  值1)
+  	如果变量的值等于值1，则执行程序1
+  ;;
+  值2)
+  	如果变量的值等于值2，则执行程序2
+  ;;
+  *)
+  	如果变量的值都不等于以上值，则执行此语句
+  ;;
+  esac
+  ```
+
+- 实际操作
+
+````
+#使用case方式来判断
+
+case $2 in
+18 )
+	echo 18
+;;
+50 )
+	echo 50
+;;
+* ) 
+	echo  默认default
+;;
+esac 
+````
+
+
+
+#### 5.3for 循环
+
+- 基本语法
+
+  ```
+  for ((初始值;循环判断条件;变量变化))
+  do
+  	程序
+  done
+  ```
+
+- 实际操作
+
+  - sum=$[ $sum + $i ]               赋值不需要$  使用需要加$
+
+```
+#!/bin/bash
+sum=0
+for((i=1;i<=100;i++))
+do
+         sum=$[ $sum + $i ]
+done
+echo $sum
+
+
+[root@hadoop100 shell_script]# ./for.sh 
+5050
+
+```
+
+
+
+- 基本语法2
+
+  ```
+  for 变量 in 值1,值2,值3 .....
+  do
+  	程序
+  done
+  ```
+
+  
+
+- 实际操作
+
+  ```
+  for os in linux, window, macos;
+  do
+          echo $os
+  done
+  
+  ```
+
+  ```
+  #!/bin/bash
+  sum=0
+  for i in (1..100);
+  do
+           sum=$[ $sum + $i ]
+  done
+  echo $sum
+  ```
+
+  
+
+#### 5.4while
+
+- 基本语法
+
+  ```
+  while [ 条件判断 ]
+  do 
+  	程序
+  done
+  ```
+
+- 实际操作
+
+  ```
+  a=1
+  while [ $a -le $1 ]
+  do
+          sum=$[ $sum + $a ]          #$sum必须第一个才可以不知道为什么
+          a=$[ $a + 1 ]
+  done
+  echo $sum
+  
+  ```
+
+- let 的简化写法
+
+```
+while [ $a -le $1 ]
+do
+        let sum+=a
+        let a++
+done
+echo $sum
+
+```
+
+
+
+### 6.0 read读取控制台输入
+
+- 基本语法
+
+  - read [选项] 参数
+  - 选项声明
+    - -p                                           指定读取值时的提示符
+    - -t                                            指定读取值等待的时间（秒）如果：不加表示一直等待
+  - 参数
+    - 变量 ：           指定读取值的变量名称
+
+- 实际案例
+
+  ```
+  #!/bin/bash
+  read -t 10 -p "输入名称"  name
+  echo "welcome, $name "                            
+  ```
+
+
+
+
+
+### 7.0 函数
+
+#### 7.1系统函数
+
+- 基本语法
+  
+- $( 系统命令)
+  
+- 小Tisp
+
+  - 注意不能有空格要有空格必须要有单引号    函数在shell脚本中使用需要加$( )
+
+  ```
+  #!/bin/bash
+  filename="$1"_log_$(date +%s)
+  echo    $filename               
+  ```
+
+##### 7.1.1 basename
+
+- 基本语法
+  - basename [string / pathname] [suffix](功能描述: basename 命令会删掉所有的前缀包括最后一个(“/') 字符，然后将字符串显示出来。
+    - basename可以理解为取路径里的文件名称
+  - 选项: 
+    - suffix为后缀,如果suffix被指定了,basename会将pathname或string中的suffix去掉。
+
+
+
+- 实际案例
+  - /shell_script/wmt_log.txt  去掉前面的路径和后缀
+
+```
+[root@hadoop100 shell_script]# basename /shell_script/wmt_log.txt .txt
+wmt_log
+
+```
+
+
+
+##### 7.1.2dirname
+
+- 基本语法
+  - dirname       文件绝对路径
+    - (功能描述 :    从给定的包含绝对路径的文件名中去除文件名(非目录的部分)，然后返回剩下的路径( 目录的部分) dirname可以理解为取文件路径的绝对路径名称。
+
+  
+
+- 实际案例
+
+  - 获取绝对路径
+
+  ```
+  #!/bin/bash
+  echo '===================$n==========================='
+  echo script name: $(basename $0 .sh)
+  cd $(dirname $0)
+  echo path: $(pwd) 
+  
+  ```
+
+  
+
+
+
+### 7.2 自定义函数
+
+- 基本语法
+
+   []表示可选择
+
+  ```
+  [ funcation ] funname [( )]
+  {
+  	Action
+  	[returm int;]
+  }
+  ```
+
+
+
+- 经验技巧
+  1. 必须在调用函数地方之前，先声明函数，shell脚本是逐行运行。不会像其它语言一样先编译。
+     2. 函数返回值，只能通过$?系统变量获得，可以显示加: return 返回，如果不加，将以最后一条命 令运行结果，作为返回值。return 后跟数值n(0-255)
+
+
+
+- 实际操作
+
+```
+[root@hadoop100 shell_script]# cat fun_test.sh 
+#!/bin/bash
+function sum(){
+	sum=$[ $1 + $2 ]
+	echo "和为"$sum
+}
+
+read -p "请输入一个整数 " a
+
+read -p "请输入一个整数 " b
+
+sum $a $b
+
+[root@hadoop100 shell_script]# ./fun_test.sh 
+请输入一个整数 15
+请输入一个整数 25
+和为40
+
+```
+
+
+
+替换return的方法
+
+```
+#!/bin/bash
+function add(){
+        sum=$[$1 + $2]
+        echo $sum           #当return用  return 后跟数值n(0-255)
+}
+
+read -p "请输入一个整数 " a
+
+read -p "请输入一个整数 " b
+
+s=$(add $a $b)
+echo "和为" $s
+
+```
+
+
+
+
+
+### 8.0 正则表达式
+
+​    	正则表达式使用单个字符串来描述、匹配一系列符合某个语法规则的字符串。在很多文本编辑器里，正则表达式通常被用来检索、替换那些符合某个模式的文本。在Linux 中，grep,sed,awk等文本处理工具都支持通过正则表达式进行模式匹配。
+
+
+
+#### 8.1 常规匹配
+
+一种不包含特殊字符的正则表达式匹配它自己，列如：
+
+```
+[root@hadoop111 sbin]#  ls | grep service
+```
+
+
+
+#### 8.2 常用特殊字符
+
+- 特殊字符： ^
+
+  ^匹配一行的开头， 例如：
+
+  ```
+  [root@hadoop111 sbin]#  ls | grep ^e
+  ```
+
+- 特殊字符：$
+
+  $匹配一行的结束，例如：
+
+  ```
+  [root@hadoop111 sbin]#  ls | grep t$
+  ```
+
+- 特殊字符：^$
+
+  ^$匹配空行     -n显示行号
+
+  ```
+  [root@hadoop111 sbin]#  ls | grep -n ^$
+  ```
+
+- 特殊字符：.
+
+  ​	. 匹配一个任意的字符，例如：
+
+  ```
+  [root@hadoop111 sbin]#  ls | grep r..b
+  ```
+
+  ​    比如： roob rait
+
+- 特殊字符：*
+
+  *不单独使用，他和上一个字符连用，表示匹配上一个字符0次或多次，例如：
+
+  ```
+  [root@hadoop111 sbin]#  ls | grep r*b
+  ```
+
+  比如：rob  roob rooob
+
+- 特殊字符：.*
+
+  匹配任意字符串，例如：
+
+  ```
+  [root@hadoop111 sbin]#  ls | grep ^r.*b$
+  ```
+
+- 字符区间（中括号）： []
+
+  1.  []表示匹配某个范围内的一个字符，例如：
+  2. [6,8]                                 匹配6和8
+  3. [0-9]                                 匹配一个0到9的数字
+  4. [0-9]*                               匹配任意长度的数字字符串
+  5. [a-z]                                  匹配一个a到z之间的字符
+  6. [a-z]*                                匹配任意长度的字母字符串
+  7. [a-c,e-f]                             匹配a-c或者e-f之间的任意字符
+
+- 实际操作
+
+  ```
+  [root@hadoop100 shell_script]# cat daily_archive.sh | grep e[i,x]*t
+  	exit
+  
+  ```
+
+- 实际经验
+
+  - 如果要筛选 $                   则需要转义 \并且加上单引号
+
+  ```
+  [root@hadoop100 shell_script]# cat daily_archive.sh | grep '\$'
+  ```
+
+  匹配手机号
+
+  ```
+  [root@hadoop100 shell_script]#  echo "13518452343" | grep -E ^1[34578][0-9]{9}$
+  13518452343
+  
+  ```
+
+
+
+### 9.0 文本处理工具
+
+#### 9.1cut
+
+cut的工作就是“剪”，具体的说就是在文件中负责剪切数据用的。cut命令从文件的每一行剪切字节、字符和字段并将这些字节、字符和字段输出。
+
+
+
+- 基本语法
+
+  - cut   [选项参数]  fliename
+  - 说明默认分隔符是制表符
+
+- 选项说明
+
+  | 选项参数 |                      功能                      |
+  | :------: | :--------------------------------------------: |
+  |    -f    |                列号，提取第几列                |
+  |    -d    | 分隔符，按照指定分隔符分割列，默认是制表符”\t“ |
+  |    -c    |    按字符进行切割，后加n表示第几列 比如-c 1    |
+
+- 实际案例
+
+  
+
+  1. 按照 空格分割 第一列
+
+```
+[root@hadoop100 shell_script]# cat cut.txt | cut -d " " -f 1 cut.txt 
+1
+a
+```
+
+2. 按照 空格分割 第一列和第二列
+
+```
+[root@hadoop100 shell_script]# cat cut.txt | cut -d " " -f 1,2 cut.txt 
+1 2
+a b
+```
+
+3. 分割三列之前                       之后是3-
+
+```
+[root@hadoop100 shell_script]# cat cut.txt  | cut -d " " -f -3 cut.txt 
+1 2
+a b
+
+```
+
+
+
+#### 9.2awk
+
+一个强大的文本分析工具，把文件逐行的读入，以空格为默认分隔符将每行切片，切开的部分再进行分析处理。
+
+
+
+- 基本语法
+
+  - awk [选项参数] '/pattern1/{action1}  /pattern2/{action2}  ....' filename
+  - pattern: 表示awk 在数据查找中的内容，就是匹配模式
+  - action： 在找到匹配内容时所执行的一系列命令
+
+- 选项参数
+
+  
+
+| 选项参数 |         说明         |
+| :------: | :------------------: |
+|    -F    |  指定输入文件分隔符  |
+|    -v    | 赋值一个用户定义变量 |
+
+- 实际操作
+  - 不使用awk操作比较复杂
+
+```
+[root@hadoop100 shell_script]# cat /etc/passwd | grep ^root
+root:x:0:0:root:/root:/bin/bash
+[root@hadoop100 shell_script]# cat /etc/passwd | grep ^root | cut -d ":" -f 7
+/bin/bash
+```
+
+- 使用awk 获取第第7列分割
+
+```
+[root@hadoop100 shell_script]# cat /etc/passwd | awk -F ":" '/^root/{print $7}'
+/bin/bash
+
+```
+
+- 使用awk 获取第6列和第7列并且以，分割
+
+```
+[root@hadoop100 shell_script]# cat /etc/passwd | awk -F ":" '/^root/{print $6","$7}'
+/root,/bin/bash
+```
+
+- 在文件前后添加行
+  - BEGIN 在文件筛选前                                                 BEGIN  {prin"   "}
+  - END在文件结束时间                                                  END{print "    "}
+
+```
+[root@hadoop100 shell_script]# cat /etc/passwd | awk -F ":" 'BEGIN{print "user","shell"}{print $1","$7}END{print "END of flie"}'
+user shell
+xiaohong,/bin/bash
+xiaolan,/bin/bash
+END of flie
+
+```
+
+
+
+- awk -v  让所有打印出来的行号加一
+
+```
+[root@hadoop100 shell_script]# cat /etc/passwd | awk -F ":" -v i=1 '{print $3+i}'
+1
+2
+
+```
+
+##### 9.2.1 awk 内置命令
+
+
+
+|   变量   |                  说明                  |
+| :------: | :------------------------------------: |
+| FILENAME |                文件名称                |
+|    NR    |          已读的记录数（行号）          |
+|    NF    | 浏览记录的域的个数（切割后，列的个数） |
+
+
+
+- 案例实操
+
+  - 统计passwd文件名，每行的行号，每行的列数
+
+  ```
+  [root@hadoop100 shell_script]#  awk -F ":" '{print "文件名称：" FILENAME , "行号:" NR , "列数"NF}' /etc/passwd
+  文件名称：/etc/passwd 行号:1 列数7
+  
+  ```
+  - 显示空行
+
+  ```
+  [root@hadoop100 shell_script]# ifconfig | awk '/^$/ {print "行号" NR}'
+  行号9
+  行号18
+  
+  ```
+
+
+
+
+
+### 10综合应用案例
+
+#### 10.1归档文件
+
+
+
+自动归档
+
+```
+#!/bin/bash
+
+#首先判断参数是否为一个
+
+if [ $# -ne 1 ]
+then
+        echo "参数错误，应该输入一个参数为归档名称"
+        exit
+fi
+
+#从参数中获取目录名称
+if [ -d $1 ]
+then
+        echo
+else
+        echo
+        echo"目录不存在"
+        exit
+fi
+
+DIR_NAME=$(basename $1)
+DIR_PATH=$(cd $(dirname $1); pwd)
+
+# 获取当前日期
+DATE=$(date +%y%m%d)
+
+#定义归档名称
+FILE=archive_${DIR_NAME}_$DATE.tar.gz
+DEST=/root/archive/$FILE
+
+# 开始归档
+
+echo "开始归档..."
+echo
+
+tar -czf $DEST $DIR_PATH/$DIR_NAME
+
+if [ $? -eq 0 ]
+then
+        echo "档成功"
+        echo "归档文件为" $DEST
+else
+        echo"归档错误"
+        echo
+fi
+
+exit   
+```
+
+
+
+- 启动定时任务
+  - 0 2 * * * /shell_script/daily_archive.sh  /root/archive                  每天2点运行一次
+
+```
+[root@hadoop100 shell_script]# crontab -l
+0 2 * * * /shell_script/daily_archive.sh  /root/archive
+
+```
+
+
 
 
 
